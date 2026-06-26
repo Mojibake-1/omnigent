@@ -91,6 +91,21 @@
   --color-tray: var(--tray);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  /* ---- Elevation scale ----------------------------------------------------
+   * One cohesive shadow language for floating surfaces, generating the
+   * `shadow-e1|e2|e3` utilities. Each tier is built on the shared
+   * --shadow-color-* tokens (redefined per theme below), so elevation tracks
+   * the brand's cool/soft shadow in light and a deeper shadow in dark instead
+   * of Tailwind's generic flat-black ramp — and every elevated surface speaks
+   * the same vocabulary. e1: resting cards · e2: floating panels/menus ·
+   * e3: dialogs/overlays. Layered (tight contact + soft ambient) so the lift
+   * reads on the near-white canvas without a hard edge. */
+  --shadow-e1:
+    0 1px 2px -1px var(--shadow-color-soft), 0 1px 1px -1px var(--shadow-color-soft);
+  --shadow-e2:
+    0 2px 6px -2px var(--shadow-color-soft), 0 8px 18px -10px var(--shadow-color-soft);
+  --shadow-e3:
+    0 4px 10px -4px var(--shadow-color-medium), 0 16px 36px -16px var(--shadow-color-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -171,7 +186,12 @@
   --secondary: #eceef1;
   --secondary-foreground: #11171c;
   --muted: #0000000f;
-  --muted-foreground: #6f6f6f;
+  /* Secondary text. Shifted off a flat neutral grey onto a cool slate that
+     belongs to the same family as --foreground (#11171c) and the cool
+     borders, so secondary copy reads as part of the palette rather than a
+     stray neutral. Also a touch darker: ~5.5:1 on white (was ~5.0:1),
+     clearing WCAG AA for body text with margin. */
+  --muted-foreground: #5d6a78;
   /* Dedicated chip background for inline code — a hair darker than the
      * white card so the chip reads as a tile. Kept separate from --muted
      * (now a translucent black wash reused for hover/quote surfaces). */
@@ -186,9 +206,11 @@
   --warning: #d4972a;
   --info: #3b8ff5;
   --border: #e8ecf0;
-  /* Stronger divider/outline + a dedicated neutral button border. */
+  /* Stronger divider/outline + a dedicated button border. The button border
+     is nudged from a flat neutral onto the same cool family as --border so
+     button outlines sit in the palette instead of reading slightly warm. */
   --border-strong: #a3b1bf;
-  --button-border: #d6d6d6;
+  --button-border: #d3d9df;
   --button-icon-hover-color: #11171c;
   --input: #e8ecf0;
   /* Focus ring matches --primary. */
@@ -229,9 +251,13 @@
   --glass-border-strong: color-mix(in srgb, var(--foreground) 14%, transparent);
   --glass-sheen: color-mix(in srgb, var(--foreground) 4%, transparent);
   --glass-sheen-transparent: color-mix(in srgb, var(--foreground) 0%, transparent);
+  /* Composer card lift — the input is the primary action surface, so it sits
+     a step above resting cards. Layered like the elevation scale (tight
+     contact shadow grounds it, soft ambient floats it) and routed through the
+     shared --shadow-color-soft token so it tracks the theme. */
   --shadow-composer-card:
-    0 12px 20px -20px color-mix(in srgb, var(--foreground) 14%, transparent),
-    0 20px 28px -28px color-mix(in srgb, var(--foreground) 10%, transparent);
+    0 2px 4px -2px var(--shadow-color-soft),
+    0 12px 26px -12px var(--shadow-color-soft);
   --share-button-top: color-mix(in srgb, var(--brand-accent) 88%, white 12%);
   --share-button-mid: var(--brand-accent);
   --share-button-bottom: color-mix(in srgb, var(--brand-accent) 82%, black 18%);
@@ -866,12 +892,18 @@
   cursor: pointer;
 }
 
-/* Flatten Streamdown's loud heading ramp (text-3xl..xl) to em sizes proportional to body. */
+/* Flatten Streamdown's loud heading ramp (text-3xl..xl) to em sizes
+ * proportional to body. The two display tiers also pull in a hair of
+ * negative tracking so larger type sets tighter and more deliberately,
+ * matching the message prose's own tracking-[-0.01em] and reading as one
+ * typographic system rather than default browser spacing at size. */
 [data-streamdown="heading-1"] {
   font-size: 1.4em;
+  letter-spacing: -0.018em;
 }
 [data-streamdown="heading-2"] {
   font-size: 1.2em;
+  letter-spacing: -0.012em;
 }
 [data-streamdown="heading-3"] {
   font-size: 1.05em;

@@ -322,7 +322,7 @@ export function Sidebar({ open, onClose, dragProgress = null }: SidebarProps) {
         // nothing lingers.
         "md:relative md:inset-auto md:translate-x-0 md:overflow-hidden",
         open
-          ? "md:m-2 md:w-[var(--sidebar-width)] md:rounded-xl md:border md:border-border md:shadow-lg"
+          ? "md:m-2 md:w-[var(--sidebar-width)] md:rounded-xl md:border md:border-border md:shadow-e2"
           : "md:m-0 md:w-0 md:border-0",
       )}
       style={
@@ -467,7 +467,7 @@ export function Sidebar({ open, onClose, dragProgress = null }: SidebarProps) {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     aria-label="Search sessions"
                     placeholder="Search sessions"
-                    className="min-h-8 w-full rounded-full border border-input pr-3 pl-8 text-sm transition placeholder:text-muted-foreground focus-visible:outline-1"
+                    className="min-h-8 w-full rounded-full border border-input pr-3 pl-8 text-sm transition-[color,border-color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
                   />
                 </div>
                 <Tooltip>
@@ -1189,7 +1189,7 @@ function SectionHeader({
         type="button"
         aria-expanded={!collapsed}
         onClick={onToggleCollapsed}
-        className="group flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="group flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-xs font-semibold tracking-wide text-muted-foreground transition-colors hover:text-foreground"
       >
         {icon}
         <span className="min-w-0 truncate">{title}</span>
@@ -1591,7 +1591,13 @@ function ConversationRow({
           !selectionMode &&
             (sessionState?.kind === "awaiting" ? "pr-48 md:pr-29" : "pr-28 md:pr-16"),
           selectionMode && "pr-10",
-          isActive && "bg-muted",
+          // Active row: keep the same muted fill as hover (so the two never
+          // fight over background), but add the unmistakable "you are here"
+          // cues hover lacks — a medium-weight title and a leading accent bar
+          // in the system's blue active-highlight hue, pinned to the rounded
+          // left edge.
+          isActive &&
+            "bg-muted font-medium before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary before:content-['']",
           selectionMode && isSelected && "bg-primary/5",
         )}
         onClick={(e) => {
