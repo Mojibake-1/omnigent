@@ -17,11 +17,13 @@
 import { useState } from "react";
 import type { ComponentType, SVGProps } from "react";
 import {
+  ArrowRightIcon,
   BookOpenIcon,
   BotIcon,
   Code2Icon,
   CompassIcon,
   CornerDownRightIcon,
+  CornerLeftUpIcon,
   FileTextIcon,
   FlaskConicalIcon,
   PlusIcon,
@@ -132,7 +134,7 @@ export function SubagentsPanel({ conversationId, rootSessionId }: SubagentsPanel
       <ul className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-1">
         <MainRow rootSessionId={rootSessionId} isActive={conversationId === rootSessionId} />
         {children.map((child) => (
-          <SubagentRow key={child.id} child={child} depth={1} conversationId={conversationId} />
+          <SubagentRow key={child.id} child={child} depth={1} conversationId={conversationId} parentId={rootSessionId} />
         ))}
       </ul>
       {/* Mounted only while open so a closed rail issues no /v1/agents
@@ -557,12 +559,15 @@ function SubagentRow({
   child,
   depth,
   conversationId,
+  parentId,
 }: {
   child: ChildSessionInfo;
   /** Levels below the root, 1 = direct child of "main". */
   depth: number;
   /** The conversation currently rendered in main, for row highlighting. */
   conversationId: string;
+  /** The parent session ID for 'return to parent' navigation. */
+  parentId: string;
 }) {
   const status = childStatus(child);
   const search = railLinkSearch(useLocation().search);
@@ -586,7 +591,8 @@ function SubagentRow({
           // See MainRow: drop session-scoped params on rail navigation
           // (preserving global ones like ``?debug=1``) so a sticky
           // ``?file=`` from the previous session doesn't carry over.
-          to={{ pathname: `/c/${child.id}`, search }}
+          to={{ pathname: `/c/${isActive ? parentId : child.id}`, search }}
+          aria-label={isActive ? `Return to parent of ${primary}` : `Take over ${primary}`}
           data-testid="subagent-row"
           data-child-session-id={child.id}
           data-depth={depth}
@@ -594,7 +600,7 @@ function SubagentRow({
           // under its parent, signaling where it sits in the tree.
           style={{ paddingLeft: ROW_BASE_PADDING_PX + (depth - 1) * ROW_DEPTH_STEP_PX }}
           className={cn(
-            "flex w-full flex-col gap-0.5 py-2 pr-2.5 text-left hover:bg-accent/60",
+            "group flex w-full flex-col gap-0.5 py-2 pr-2.5 text-left hover:bg-accent/60",
             isActive && "bg-accent",
             dim && "opacity-60 hover:opacity-100",
           )}
@@ -609,7 +615,41 @@ function SubagentRow({
             <Icon className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="shrink-0 truncate text-xs font-medium">{primary}</span>
             <span className="flex-1" />
-            <StatusIndicator {...status} />
+            {isActive ? (
+              // The active (current) row doubles as an explicit "go back up
+              // the tree" control: its Link targets the parent, and this
+              // always-visible pill names the action so a child/grandchild
+              // has a discoverable path to its parent from inside the tree —
+              // not only from the header. ``aria-hidden`` keeps it from
+              // double-announcing the Link's own ``aria-label``; the visual
+              // ``title`` tooltip and brand-token styling stay theme-aware.
+              <span
+                aria-hidden="true"
+                title="Return to parent"
+                data-testid="subagent-return-affordance"
+                className="flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground transition-colors group-hover:bg-accent-foreground/10 group-hover:text-foreground group-focus-visible:bg-accent-foreground/10 group-focus-visible:text-foreground"
+              >
+                Return
+                <CornerLeftUpIcon className="size-3" />
+              </span>
+            ) : (
+              <>
+                <StatusIndicator {...status} />
+                {/* Always-visible "take over" cue: the action is explicit and
+                    discoverable, never inferred from hover alone. The row's
+                    Link carries the accessible "Take over …" name, so this
+                    icon is decorative (``aria-hidden``) with a ``title``
+                    tooltip, and brightens on row hover / keyboard focus. */}
+                <span
+                  aria-hidden="true"
+                  title="Take over"
+                  data-testid="subagent-takeover-affordance"
+                  className="flex shrink-0 items-center text-muted-foreground/70 transition-colors group-hover:text-foreground group-focus-visible:text-foreground"
+                >
+                  <ArrowRightIcon className="size-3.5" />
+                </span>
+              </>
+            )}
           </div>
           {child.last_message_preview && (
             // Preview indented to align with the title text on the row
@@ -628,6 +668,7 @@ function SubagentRow({
           child={grandchild}
           depth={depth + 1}
           conversationId={conversationId}
+          parentId={child.id}
         />
       ))}
     </>
