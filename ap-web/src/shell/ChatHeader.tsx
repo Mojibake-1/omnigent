@@ -244,7 +244,9 @@ export function ChatHeader({
                   <span className="truncate text-sm font-semibold text-foreground">
                     {boundAgent.name}
                   </span>
-                  <span className="text-xs text-muted-foreground">Sub-agent</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    Sub-agent
+                  </span>
                 </div>
               ) : (
                 <span className="text-sm font-semibold text-foreground">Sub-agent</span>
